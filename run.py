@@ -10,9 +10,10 @@ app = Eve()
 @app.route('/random/', defaults={'count': 1})
 @app.route('/random/<int:count>')
 def random(count):
-    pass
+    cursor = db.joke.aggregate([{'$sample': {'size': 3}}])
+    return cursor.resault
 
 
 
 if __name__ == '__main__':
-    app.run(port = app.config.get("LISTEN_PORT"))
+    app.run(port=app.config.get("LISTEN_PORT"),debug=True)
