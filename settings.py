@@ -23,6 +23,13 @@ ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 # page size
 PAGINATION_DEFAULT = 10
 
+# CORS settings
+X_DOMAINS = '*'
+X_HEADERS = None
+X_EXPOSE_HEADERS = None
+X_ALLOW_CREDENTIALS = None
+X_MAX_AGE = 864000
+
 # data
 joke = {
     # 'title' tag used in item links.
@@ -52,10 +59,155 @@ joke = {
             'type': 'string',
         },
         'rank': {
-            'type': 'int',
+            'type': 'number',
         },
     }
 }
 
-DOMAIN = {'joke': joke}
+random = {
+    'datasource': {
+        'source': 'joke',
+        'aggregation': {
+            'pipeline': [
+                {"$sample": {"size": 5}},
+            ]
+        }
+    },
+
+    # 'schema': {
+        # 'content': {
+            # 'type': 'string',
+            # 'minlength': 1,
+            # 'maxlength': 200,
+            # 'required': True,
+        # },
+        # 'answer': {
+            # 'type': 'string',
+            # 'minlength': 1,
+            # 'maxlength': 200,
+        # },
+        # 'author': {
+            # 'type': 'objectid',
+        # },
+        # 'via': {
+            # 'type': 'string',
+            # 'minlength': 1,
+            # 'maxlength': 20,
+        # },
+        # 'via_url': {
+            # 'type': 'string',
+        # },
+        # 'rank': {
+            # 'type': 'number',
+        # },
+    # }
+}
+
+laifudao = {
+    # 'title' tag used in item links.
+    'item_title': '来福岛源',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
+pengfu = {
+    # 'title' tag used in item links.
+    'item_title': '捧腹网源',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
+fml_zh = {
+    # 'title' tag used in item links.
+    'item_title': 'FML翻译源',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
+qiubai = {
+    # 'title' tag used in item links.
+    'item_title': '糗事百科源',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
+DOMAIN = {'joke': joke,
+          'random': random,
+          'laifudao': laifudao,
+          'pengfu': pengfu,
+          'qiubai': qiubai,
+          'fml_zh': fml_zh,
+}
 
