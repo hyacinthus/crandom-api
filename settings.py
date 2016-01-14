@@ -33,7 +33,7 @@ X_MAX_AGE = 864000
 # data
 joke = {
     # 'title' tag used in item links.
-    'item_title': 'Dry humor',
+    'item_title': 'Dry Humor',
 
     'schema': {
         'content': {
@@ -64,12 +64,68 @@ joke = {
     }
 }
 
+fml = {
+    # 'title' tag used in item links.
+    'item_title': 'Fuck My Life',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'author': {
+            'type': 'objectid',
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
+dirty = {
+    # 'title' tag used in item links.
+    'item_title': 'Dirty Joke',
+
+    'schema': {
+        'content': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 200,
+            'required': True,
+        },
+        'author': {
+            'type': 'objectid',
+        },
+        'via': {
+            'type': 'string',
+            'minlength': 1,
+            'maxlength': 20,
+        },
+        'via_url': {
+            'type': 'string',
+        },
+        'rank': {
+            'type': 'number',
+        },
+    }
+}
+
 random = {
     'datasource': {
         'source': 'joke',
         'aggregation': {
             'pipeline': [
-                {"$sample": {"size": 5}},
+                {"$sample": {"size": 1}},
             ]
         }
     },
@@ -101,6 +157,17 @@ random = {
             # 'type': 'number',
         # },
     # }
+}
+
+randomten = {
+    'datasource': {
+        'source': 'joke',
+        'aggregation': {
+            'pipeline': [
+                {"$sample": {"size": 10}},
+            ]
+        }
+    }
 }
 
 laifudao = {
@@ -204,7 +271,10 @@ qiubai = {
 }
 
 DOMAIN = {'joke': joke,
+          'fml': fml,
+          'dirty': dirty,
           'random': random,
+          'randomten': randomten,
           'laifudao': laifudao,
           'pengfu': pengfu,
           'qiubai': qiubai,
