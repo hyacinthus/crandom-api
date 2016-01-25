@@ -33,19 +33,20 @@ X_MAX_AGE = 864000
 # data
 joke = {
     # 'title' tag used in item links.
+    'resource_title': '冷笑话',
     'item_title': 'Dry Humor',
 
     'schema': {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'answer': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
         },
         'author': {
             'type': 'objectid',
@@ -66,13 +67,14 @@ joke = {
 
 fml = {
     # 'title' tag used in item links.
+    'resource_title': 'Fuck My Life',
     'item_title': 'Fuck My Life',
 
     'schema': {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'author': {
@@ -94,13 +96,14 @@ fml = {
 
 dirty = {
     # 'title' tag used in item links.
+    'resource_title': '段子',
     'item_title': 'Dirty Joke',
 
     'schema': {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'author': {
@@ -121,6 +124,9 @@ dirty = {
 }
 
 random = {
+    'resource_title': '随机一个冷笑话',
+    'resource_methods': ['GET'],
+    'item_methods': [],
     'datasource': {
         'source': 'joke',
         'aggregation': {
@@ -129,37 +135,12 @@ random = {
             ]
         }
     },
-
-    # 'schema': {
-        # 'content': {
-            # 'type': 'string',
-            # 'minlength': 1,
-            # 'maxlength': 200,
-            # 'required': True,
-        # },
-        # 'answer': {
-            # 'type': 'string',
-            # 'minlength': 1,
-            # 'maxlength': 200,
-        # },
-        # 'author': {
-            # 'type': 'objectid',
-        # },
-        # 'via': {
-            # 'type': 'string',
-            # 'minlength': 1,
-            # 'maxlength': 20,
-        # },
-        # 'via_url': {
-            # 'type': 'string',
-        # },
-        # 'rank': {
-            # 'type': 'number',
-        # },
-    # }
 }
 
 randomten = {
+    'resource_title': '随机十个冷笑话',
+    'resource_methods': ['GET'],
+    'item_methods': [],
     'datasource': {
         'source': 'joke',
         'aggregation': {
@@ -178,7 +159,7 @@ laifudao = {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'via': {
@@ -203,7 +184,7 @@ pengfu = {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'via': {
@@ -228,7 +209,7 @@ fml_zh = {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'via': {
@@ -253,7 +234,7 @@ qiubai = {
         'content': {
             'type': 'string',
             'minlength': 1,
-            'maxlength': 200,
+            'maxlength': 1000,
             'required': True,
         },
         'via': {
