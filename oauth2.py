@@ -4,10 +4,13 @@ from flask import request
 from redis import StrictRedis
 from flask_oauthlib.provider import OAuth2Provider
 from mongokit import Connection, Document
+import logging
 
 import settings
 
 
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger("oauth")
 oauth = OAuth2Provider()
 mongo = Connection(host=settings.MONGO_HOST,
                    port=settings.MONGO_PORT)
@@ -41,7 +44,7 @@ class Client(Document):
     use_schemaless = True
 
     structure = {
-            "_id": str,
+            "client_id": str,
             "client_secret": str,
             "client_type": str,
             "redirect_uris": [str],
@@ -49,7 +52,6 @@ class Client(Document):
             "default_scopes": [str],
             "allowed_grant_types": [str],
             "allowed_response_types": [str],
-            "validate_scopes": [str]
     }
 
 
@@ -127,7 +129,7 @@ class Token():
     def __init__(self, access_token=None, refresh_token=None):
         if access_token:
             if redisdb.exists("oauth:access_token:%s:user_id" %
-                              access_token)
+                              access_token):
                 self.access_token = access_token
                 self.refresh_token = self._geta("refresh_token")
                 self.client_id = self._geta("client_id")
@@ -137,7 +139,7 @@ class Token():
                 self.saved = True
         elif refresh_token:
             if redisdb.exists("oauth:refresh_token:%s:access_token" %
-                              refresh_token)
+                              refresh_token):
                 self.refresh_token = refresh_token
                 self.access_token = self._getr("access_token")
                 self.client_id = self._getr("client_id")
@@ -231,12 +233,15 @@ class Token():
 # 注册认证函数
 @oauth.clientgetter
 def load_client(client_id):
-    return mongo.Client.find({"client_id": client_id})
+    client = mongo.Client.find_one({"client_id": client_id})
+    return client
 
 
 @oauth.grantgetter
 def load_grant(client_id, code):
-    return Grant(client_id, code)
+    grant = Grant(client_id, code)
+    if grant.saved:
+        return grant
 
 
 @oauth.grantsetter
@@ -257,9 +262,13 @@ def save_grant(client_id, code, request, *args, **kwargs):
 @oauth.tokengetter
 def load_token(access_token=None, refresh_token=None):
     if access_token:
-        return Token(access_token=access_token)
+        tok = Token(access_token=access_token)
+        if tok.saved:
+            return tok
     elif refresh_token:
-        return Token(refresh_token=refresh_token)
+        tok = Token(refresh_token=refresh_token)
+        if tok.saved:
+            return tok
 
 
 @oauth.tokensetter
@@ -291,7 +300,6 @@ class BearerAuth(BasicAuth):
     """
     def __init__(self):
         super(BearerAuth, self).__init__()
-        self.redis = StrictRedis()
 
     def check_auth(self, token, allowed_roles, resource, method):
         """ Check if API request is authorized.
@@ -302,7 +310,9 @@ class BearerAuth(BasicAuth):
         :param resource: Resource being requested.
         :param method: HTTP method being executed (POST, GET, etc.)
         """
-        return token and self.redis.get(token)
+        tok = Token(access_token=token)
+        if tok.saved:
+            return True
 
     def authorized(self, allowed_roles, resource, method):
         """ Validates the the current request is allowed to pass through.

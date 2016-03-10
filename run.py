@@ -1,4 +1,5 @@
 from eve import Eve
+from flask import request
 from oauth2 import BearerAuth, oauth
 from flask.ext.bootstrap import Bootstrap
 from eve_docs import eve_docs
@@ -10,7 +11,6 @@ app.register_blueprint(eve_docs, url_prefix='/docs')
 
 
 @app.route('/oauth/authorize', methods=['GET', 'POST'])
-@require_login
 @oauth.authorize_handler
 def authorize(*args, **kwargs):
     if request.method == 'GET':
@@ -23,7 +23,7 @@ def authorize(*args, **kwargs):
     return confirm == 'yes'
 
 
-@app.route('/oauth/token')
+@app.route('/oauth/token', methods=['GET', 'POST'])
 @oauth.token_handler
 def access_token():
     return None
