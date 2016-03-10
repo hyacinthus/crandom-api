@@ -64,15 +64,19 @@ class Grant():
     scopes = None
     user_id = None
     expires = None
+    saved = False
 
     def __init__(self, client_id=None, code=None):
         if client_id and code:
-            self.client_id = client_id
-            self.code = code
-            self.redirect_uri = self._get("redirect_uri")
-            self.scopes = self._get("scopes")
-            self.user_id = self._get("user_id")
-            self.expires = self._get("expires")
+            if redisdb.exists("oauth:grant:%s:%s:user_id" %
+                              (client_id, code)):
+                self.client_id = client_id
+                self.code = code
+                self.redirect_uri = self._get("redirect_uri")
+                self.scopes = self._get("scopes")
+                self.user_id = self._get("user_id")
+                self.expires = self._get("expires")
+                self.saved = True
 
     def _get(self, key):
         return redisdb.get("oauth:grant:%s:%s:%s" % (self.client_id,
@@ -95,6 +99,7 @@ class Grant():
             self._set("scopes", self.scopes)
             self._set("user_id", self.user_id)
             self._set("expires", self.expires)
+            self.saved = True
 
     def delete(self):
         if self.client_id and self.code:
@@ -102,6 +107,7 @@ class Grant():
             self._del("scopes")
             self._del("user_id")
             self._del("expires")
+            self.saved = False
 
 
 class Token():
@@ -116,22 +122,29 @@ class Token():
     scopes = None
     user_id = None
     expires = None
+    saved = False
 
     def __init__(self, access_token=None, refresh_token=None):
         if access_token:
-            self.access_token = access_token
-            self.refresh_token = self._geta("refresh_token")
-            self.client_id = self._geta("client_id")
-            self.scopes = self._geta("scopes")
-            self.user_id = self._geta("user_id")
-            self.expires = self._geta("expires")
+            if redisdb.exists("oauth:access_token:%s:user_id" %
+                              access_token)
+                self.access_token = access_token
+                self.refresh_token = self._geta("refresh_token")
+                self.client_id = self._geta("client_id")
+                self.scopes = self._geta("scopes")
+                self.user_id = self._geta("user_id")
+                self.expires = self._geta("expires")
+                self.saved = True
         elif refresh_token:
-            self.refresh_token = refresh_token
-            self.access_token = self._getr("access_token")
-            self.client_id = self._getr("client_id")
-            self.scopes = self._getr("scopes")
-            self.user_id = self._getr("user_id")
-            self.expires = self._getr("expires")
+            if redisdb.exists("oauth:refresh_token:%s:access_token" %
+                              refresh_token)
+                self.refresh_token = refresh_token
+                self.access_token = self._getr("access_token")
+                self.client_id = self._getr("client_id")
+                self.scopes = self._getr("scopes")
+                self.user_id = self._getr("user_id")
+                self.expires = self._getr("expires")
+                self.saved = True
 
     def _geta(self, key):
         return redisdb.get("oauth:access_token:%s:%s" %
@@ -203,6 +216,7 @@ class Token():
                     self.refresh_token, self.user_id)
         redisdb.set("oauth:refresh_token:%s:expires" %
                     self.refresh_token, self.expires)
+        self.saved = True
 
     def delete(self):
         if self.refresh_token:
@@ -211,6 +225,7 @@ class Token():
             self._dela(self.access_token)
         redisdb.delete("oauth:user:%s:%s" %
                        (self.user_id, self.client_id))
+        self.saved = False
 
 
 # 注册认证函数
