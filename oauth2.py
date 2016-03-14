@@ -4,6 +4,7 @@ from flask import request
 from redis import StrictRedis
 from flask_oauthlib.provider import OAuth2Provider
 from mongokit import Connection, Document
+from bson.objectid import ObjectId
 import logging
 
 import settings
@@ -14,7 +15,7 @@ log = logging.getLogger("oauth")
 oauth = OAuth2Provider()
 mongo = Connection(host=settings.MONGO_HOST,
                    port=settings.MONGO_PORT)
-redisdb = StrictRedis(db=9)
+redisdb = StrictRedis(db=9, decode_responses=True)
 
 
 # 认证数据结构
@@ -33,26 +34,45 @@ class User(Document):
     }
 
 
-@mongo.register
-class Client(Document):
+class Client():
     """A client is the app which want to use the resource of a user.
     It is suggested that the client is registered by a user on your site,
     but it is not required."""
-    __collection__ = 'clients'
-    __database__ = 'crandom'
-    use_dot_notation = True
-    use_schemaless = True
+    @property
+    def client_id(self):
+        return 'app'
 
-    structure = {
-            "client_id": str,
-            "client_secret": str,
-            "client_type": str,
-            "redirect_uris": [str],
-            "default_redirect_uri": str,
-            "default_scopes": [str],
-            "allowed_grant_types": [str],
-            "allowed_response_types": [str],
-    }
+    @property
+    def client_secret(self):
+        return None
+
+            # "client_secret": str,
+            # "client_type": str,
+            # "redirect_uris": [str],
+            # "default_redirect_uri": str,
+            # "default_scopes": [str],
+            # "allowed_grant_types": [str],
+            # "allowed_response_types": [str],
+
+    @property
+    def client_type(self):
+        return None
+
+    @property
+    def redirect_uris(self):
+        return None
+
+    @property
+    def default_redirect_uri(self):
+        return None
+
+    @property
+    def default_scopes(self):
+        return []
+
+    @property
+    def allowed_grant_types(self):
+        return ("password", "refresh_token")
 
 
 class Grant():
@@ -157,34 +177,36 @@ class Token():
                            (self.refresh_token, key))
 
     def _dela(self, access_token):
-        redisdb.delete("oauth:access_token:%s:%s" %
-                       (access_token, self.refresh_token))
-        redisdb.delete("oauth:access_token:%s:%s" %
-                       (access_token, self.client_id))
-        redisdb.delete("oauth:access_token:%s:%s" %
-                       (access_token, self.scopes))
-        redisdb.delete("oauth:access_token:%s:%s" %
-                       (access_token, self.user_id))
-        redisdb.delete("oauth:access_token:%s:%s" %
-                       (access_token, self.expires))
+        redisdb.delete("oauth:access_token:%s:refresh_token" %
+                       access_token)
+        redisdb.delete("oauth:access_token:%s:client_id" %
+                       access_token)
+        redisdb.delete("oauth:access_token:%s:scopes" %
+                       access_token)
+        redisdb.delete("oauth:access_token:%s:user_id" %
+                       access_token)
+        redisdb.delete("oauth:access_token:%s:expires" %
+                       access_token)
 
     def _delr(self, refresh_token):
-        redisdb.delete("oauth:refresh_token:%s:%s" %
-                       (refresh_token, self.access_token))
-        redisdb.delete("oauth:refresh_token:%s:%s" %
-                       (refresh_token, self.client_id))
-        redisdb.delete("oauth:refresh_token:%s:%s" %
-                       (refresh_token, self.scopes))
-        redisdb.delete("oauth:refresh_token:%s:%s" %
-                       (refresh_token, self.user_id))
-        redisdb.delete("oauth:refresh_token:%s:%s" %
-                       (refresh_token, self.expires))
+        redisdb.delete("oauth:refresh_token:%s:access_token" %
+                       refresh_token)
+        redisdb.delete("oauth:refresh_token:%s:client_id" %
+                       refresh_token)
+        redisdb.delete("oauth:refresh_token:%s:scopes" %
+                       refresh_token)
+        redisdb.delete("oauth:refresh_token:%s:user_id" %
+                       refresh_token)
+        redisdb.delete("oauth:refresh_token:%s:expires" %
+                       refresh_token)
 
     def save(self):
         # one token per one client one user
         old_access = redisdb.get("oauth:user:%s:%s" %
                                  (self.user_id, self.client_id))
         if old_access and old_access != self.access_token:
+            log.debug(old_access)
+            log.debug(self.access_token)
             old_refresh = redisdb.get(
                     "oauth:access_token:%s:refresh_token" %
                     old_access)
@@ -229,11 +251,16 @@ class Token():
                        (self.user_id, self.client_id))
         self.saved = False
 
+    @property
+    def user(self):
+        if self.user_id:
+            return mongo.User.find_one({"_id": ObjectId(self.user_id)})
+
 
 # 注册认证函数
 @oauth.clientgetter
 def load_client(client_id):
-    client = mongo.Client.find_one({"client_id": client_id})
+    client = Client()
     return client
 
 
